@@ -7,8 +7,9 @@ const prefix= '-';
 
 const { Player } = require("discord-music-player");
 const player = new Player(client, {
-    leaveOnEmpty: false, // This options are optional.
-    volume: 30
+    leaveOnEnd: false, // This options are optional.
+    volume: 30,
+    timeout: 5
 });
 // You can define the Player as *client.player* to easly access it.
 client.player = player;
