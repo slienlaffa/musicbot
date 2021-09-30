@@ -1,0 +1,20 @@
+{
+  "name": "new_musicbot",
+  "version": "1.0.0",
+  "description": "A music bot for my personal use",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slienlaffa/musicbot"
+  },
+  "author": "Sergio Lienlaff Aguirre",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.6.0",
+    "discord-music-player": "^8.1.0",
+    "discord.js": "^13.1.0"
+  }
+}
