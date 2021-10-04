@@ -8,7 +8,7 @@ const prefix= '-';
 const { Player } = require("discord-music-player");
 const player = new Player(client, {
     leaveOnEnd: false, // This options are optional.
-    volume: 30,
+    volume: 40,
     timeout: 5
 });
 // You can define the Player as *client.player* to easly access it.
@@ -24,31 +24,31 @@ client.login(token);
 client.player
     // Emitted when channel was empty.
     .on('channelEmpty',  (queue) =>
-        console.log(`Everyone left the Voice Channel, queue ended.`))
+        queue.data.message.channel.send(`Everyone left the Voice Channel, queue ended.`))
     // Emitted when a song was added to the queue.
-    .on('songAdd',  (queue, song) =>
-        console.log(`Song ${song} was added to the queue.`))
+ //   .on('songAdd',  (queue, song) =>
+ //       queue.data.message.channel.send(`Song ${song} was added to the queue.`))
     // Emitted when a playlist was added to the queue.
     .on('playlistAdd',  (queue, playlist) =>
-        console.log(`Playlist ${playlist} with ${playlist.songs.length} was added to the queue.`))
+        queue.data.message.channel.send(`Playlist ${playlist} with ${playlist.songs.length} was added to the queue.`))
     // Emitted when there was no more music to play.
     .on('queueEnd',  (queue) =>
-        console.log(`The queue has ended.`))
+        queue.data.message.channel.send(`The queue has ended.`))
     // Emitted when a song changed.
     .on('songChanged', (queue, newSong, oldSong) =>
-        console.log(`${newSong} is now playing.`))
+        queue.data.message.channel.send(`${newSong} is now playing.`))
     // Emitted when a first song in the queue started playing.
     .on('songFirst',  (queue, song) =>
-        console.log(`Started playing ${song}.`))
+        queue.data.message.channel.send(`Started playing ${song}.`))
     // Emitted when someone disconnected the bot from the channel.
     .on('clientDisconnect', (queue) =>
-        console.log(`I was kicked from the Voice Channel, queue ended.`))
+        queue.data.message.channel.send(`I was kicked from the Voice Channel, queue ended.`))
     // Emitted when deafenOnJoin is true and the bot was undeafened
     .on('clientUndeafen', (queue) =>
-        console.log(`I got undefeanded.`))
+        queue.data.message.channel.send(`I got undefeanded.`))
     // Emitted when there was an error in runtime
     .on('error', (error, queue) => {
-        console.log(`Error: ${error} in ${queue.guild.name}`);
+        queue.data.message.channel.send(`Error: ${error} in ${queue.guild.name}`);
     });
 
 const { RepeatMode } = require('discord-music-player');
@@ -58,8 +58,8 @@ client.on('messageCreate', async (message) => {
     const command = args.shift();
     let guildQueue = client.player.getQueue(message.guild.id);
 
-    if(command === 'play') {
-        let queue = client.player.createQueue(message.guild.id);
+    if(command === 'play' || command === 'p') {
+        let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
         let song = await queue.play(args.join(' ')).catch(_ => {
             if(!guildQueue)
@@ -67,8 +67,8 @@ client.on('messageCreate', async (message) => {
         });
     }
 
-    if(command === 'playlist') {
-        let queue = client.player.createQueue(message.guild.id);
+    if(command === 'playlist' || command === 'pl') {
+        let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
         let song = await queue.playlist(args.join(' ')).catch(_ => {
             if(!guildQueue)
@@ -76,7 +76,8 @@ client.on('messageCreate', async (message) => {
         });
     }
 
-    if(command === 'skip') {
+    if(command === 'skip' || command === 's') {
+        // añadir que existe
         guildQueue.skip();
     }
 
@@ -110,10 +111,12 @@ client.on('messageCreate', async (message) => {
 
     if(command === 'shuffle') {
         guildQueue.shuffle();
+        message.channel.send('Shuffleando')
     }
 
-    if(command === 'getQueue') {
-        console.log(guildQueue);
+    if(command === 'queue' || command === 'q') {
+        // cambiar a solo 10
+        message.channel.send(guildQueue.songs.slice(0,9).join('\n'))
     }
 
     if(command === 'getVolume') {
@@ -128,8 +131,13 @@ client.on('messageCreate', async (message) => {
         guildQueue.setPaused(true);
     }
 
-    if(command === 'resume') {
+    if(command === 'resume' || command === 'r') {
         guildQueue.setPaused(false);
+    }
+
+    if(command === 'leave' || command === 'l') {
+        message.channel.send('Que pasa larva, me queri echar')
+    //    client.player.lea
     }
 
     if(command === 'remove') {
