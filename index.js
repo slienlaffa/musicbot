@@ -61,7 +61,9 @@ client.on('messageCreate', async (message) => {
     if(command === 'play' || command === 'p') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
-        let song = await queue.play(args.join(' ')).catch(_ => {
+        let functionPlay = /youtube.com\/watch.*list/.test(args[0]) ? queue.playlist : queue.play
+        let song = await functionPlay.call(queue,args.join(' ')).catch(err => {
+            console.log(err)
             if(!guildQueue)
                 queue.stop();
         });
@@ -149,5 +151,9 @@ client.on('messageCreate', async (message) => {
         
         // [======>              ][00:35/2:20]
         console.log(ProgressBar.prettier);
+    }
+
+    if(command === 'help' || command === 'h') {
+        message.channel.send('Puta perro perdon, no te puedo ayudar ahora, toy videos de gatos en youtube')
     }
 })
