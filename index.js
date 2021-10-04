@@ -54,6 +54,7 @@ client.player
 const { RepeatMode } = require('discord-music-player');
 
 client.on('messageCreate', async (message) => {
+    if(!message.content.startsWith(prefix)) return
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
     const command = args.shift();
     let guildQueue = client.player.getQueue(message.guild.id);
