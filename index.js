@@ -154,6 +154,6 @@ client.on('messageCreate', async (message) => {
     }
 
     if(command === 'help' || command === 'h') {
-        message.channel.send('Puta perro perdon, no te puedo ayudar ahora, toy videos de gatos en youtube')
+        message.channel.send('Puta perro perdon, no te puedo ayudar ahora, toy viendo videos de gatos en youtube')
     }
 })
