@@ -20,6 +20,9 @@ client.on("ready", () => {
 
 client.login(token);
 
+client.on("error", (e) => console.error(e));
+client.on("warn", (e) => console.warn(e));
+
 // Init the event listener only once (at the top of your code).
 client.player
     // Emitted when channel was empty.
@@ -54,26 +57,35 @@ client.player
 const { RepeatMode } = require('discord-music-player');
 
 client.on('messageCreate', async (message) => {
+    if(message.author.bot) return;
     if(!message.content.startsWith(prefix)) return
+    if(!message.member.voice.channel) return
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
-    const command = args.shift();
+    const command = args.shift().toLowerCase();
     let guildQueue = client.player.getQueue(message.guild.id);
 
     if(command === 'play' || command === 'p') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
-        let functionPlay = /youtube.com\/watch.*list/.test(args[0]) ? queue.playlist : queue.play
+        let song = await queue.play(queue,args.join(' ')).catch(err => {
+            message.channel.send('No pregunti por qué, pero la wea no funciona')
+            if(!guildQueue)
+                queue.stop();
+        });
+        /*let functionPlay = /youtube.com\/watch.*list/.test(args[0]) ? queue.playlist : queue.play
+        console.log(functionPlay)
         let song = await functionPlay.call(queue,args.join(' ')).catch(err => {
             console.log(err)
             if(!guildQueue)
                 queue.stop();
-        });
+        });*/
     }
 
     if(command === 'playlist' || command === 'pl') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
         let song = await queue.playlist(args.join(' ')).catch(_ => {
+            message.channel.send('No pregunti por qué, pero la wea no funciona')
             if(!guildQueue)
                 queue.stop();
         });
@@ -81,23 +93,28 @@ client.on('messageCreate', async (message) => {
 
     if(command === 'skip' || command === 's') {
         // añadir que existe
+        if(!guildQueue.hasQueue) return
         guildQueue.skip();
+        message.channel.send('Canción saltada')
     }
 
     if(command === 'stop') {
         guildQueue.stop();
     }
 
-    if(command === 'removeLoop') {
+    if(command === 'unloop') {
         guildQueue.setRepeatMode(RepeatMode.DISABLED); // or 0 instead of RepeatMode.DISABLED
+        message.channel.send('Loop desactivado')
     }
 
-    if(command === 'toggleLoop') {
+    if(command === 'loop') {
         guildQueue.setRepeatMode(RepeatMode.SONG); // or 1 instead of RepeatMode.SONG
+        message.channel.send('Loop activado')
     }
 
-    if(command === 'toggleQueueLoop') {
+    if(command === 'loopQueue') {
         guildQueue.setRepeatMode(RepeatMode.QUEUE); // or 2 instead of RepeatMode.QUEUE
+        message.channel.send('Loop de queue activado')
     }
 
     if(command === 'setVolume') {
@@ -108,8 +125,9 @@ client.on('messageCreate', async (message) => {
         guildQueue.seek(parseInt(args[0]) * 1000);
     }
 
-    if(command === 'clearQueue') {
+    if(command === 'clear') {
         guildQueue.clearQueue();
+        message.channel.send('Queue limpiada')
     }
 
     if(command === 'shuffle') {
@@ -118,8 +136,9 @@ client.on('messageCreate', async (message) => {
     }
 
     if(command === 'queue' || command === 'q') {
-        // cambiar a solo 10
-        message.channel.send(guildQueue.songs.slice(0,9).join('\n'))
+        let queuePretty = guildQueue.songs.slice(0,9)
+        .map((song, index) => `${index+1}- ${song.name} || ${song.name}\n`).join('\n')
+        message.channel.send('\`\`\`' + queuePretty + '\`\`\`')
     }
 
     if(command === 'getVolume') {
@@ -155,6 +174,6 @@ client.on('messageCreate', async (message) => {
     }
 
     if(command === 'help' || command === 'h') {
-        message.channel.send('Puta perro perdon, no te puedo ayudar ahora, toy viendo videos de gatos en youtube')
+        message.channel.send('-play -playlist -skip -stop -loop -unloop -loopQueue -clear -shuffle -queue -pause -resume')
     }
 })
