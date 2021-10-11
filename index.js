@@ -59,14 +59,16 @@ const { RepeatMode } = require('discord-music-player');
 client.on('messageCreate', async (message) => {
     if(message.author.bot) return;
     if(!message.content.startsWith(prefix)) return
+    const args = message.content.slice(prefix.length).trim().split(/ +/g);
+    const command = args.shift().toLowerCase();
 
+    
     if(command === 'help' || command === 'h') {
         message.channel.send('-play -playlist -skip -stop -loop -unloop -loopQueue -clear -shuffle -queue -pause -resume')
     }
     
     if(!message.member.voice.channel) return
-    const args = message.content.slice(prefix.length).trim().split(/ +/g);
-    const command = args.shift().toLowerCase();
+    
     let guildQueue = client.player.getQueue(message.guild.id);
 
     if(command === 'play' || command === 'p') {
