@@ -8,8 +8,8 @@ const prefix= '-';
 const { Player } = require("discord-music-player");
 const player = new Player(client, {
     leaveOnEnd: false, // This options are optional.
-    volume: 40,
-    timeout: 5
+    volume: 50,
+    quality: 'low'
 });
 // You can define the Player as *client.player* to easly access it.
 client.player = player;
@@ -51,7 +51,7 @@ client.player
         queue.data.message.channel.send(`I got undefeanded.`))
     // Emitted when there was an error in runtime
     .on('error', (error, queue) => {
-        queue.data.message.channel.send(`Error: ${error} in ${queue.guild.name}`);
+        console.log(`Error: ${error} in ${queue.guild.name}`);
     });
 
 const { RepeatMode } = require('discord-music-player');
@@ -67,38 +67,36 @@ client.on('messageCreate', async (message) => {
     if(command === 'play' || command === 'p') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
-        let song = await queue.play(queue,args.join(' ')).catch(err => {
+        let functionPlay = /youtube.com\/.*list/.test(args[0]) ? queue.playlist : queue.play
+        let song = await functionPlay.call(queue, args.join(' ')).catch(err => {
+            console.log(new Date(Date.now()).toLocaleTimeString('en-US', {timezone: 'Zone America/Santiago'}) + ' Error: ' +  err)
             message.channel.send('No pregunti por qué, pero la wea no funciona')
             if(!guildQueue)
                 queue.stop();
         });
-        /*let functionPlay = /youtube.com\/watch.*list/.test(args[0]) ? queue.playlist : queue.play
-        console.log(functionPlay)
-        let song = await functionPlay.call(queue,args.join(' ')).catch(err => {
-            console.log(err)
-            if(!guildQueue)
-                queue.stop();
-        });*/
     }
 
     if(command === 'playlist' || command === 'pl') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
-        let song = await queue.playlist(args.join(' ')).catch(_ => {
+        let song = await queue.playlist(args.join(' ')).catch(err => {
+            console.log(new Date(Date.now()).toLocaleTimeString('en-US', {timezone: 'Zone America/Santiago'}) + ' Error: ' +  err)
             message.channel.send('No pregunti por qué, pero la wea no funciona')
             if(!guildQueue)
                 queue.stop();
         });
     }
 
+    // If the guildQueue does not exist, any of the other commands will fail
+    if(!guildQueue) return
+
     if(command === 'skip' || command === 's') {
-        // añadir que existe
-        if(!guildQueue.hasQueue) return
+        if(guildQueue.songs.length == 0) return
         guildQueue.skip();
         message.channel.send('Canción saltada')
     }
 
-    if(command === 'stop') {
+    if(command === 'stop' || command === 'leave') {
         guildQueue.stop();
     }
 
@@ -112,12 +110,12 @@ client.on('messageCreate', async (message) => {
         message.channel.send('Loop activado')
     }
 
-    if(command === 'loopQueue') {
+    if(command === 'loopqueue') {
         guildQueue.setRepeatMode(RepeatMode.QUEUE); // or 2 instead of RepeatMode.QUEUE
         message.channel.send('Loop de queue activado')
     }
 
-    if(command === 'setVolume') {
+    if(command === 'setvolume') {
         guildQueue.setVolume(parseInt(args[0]));
     }
 
@@ -141,32 +139,28 @@ client.on('messageCreate', async (message) => {
         message.channel.send('\`\`\`' + queuePretty + '\`\`\`')
     }
 
-    if(command === 'getVolume') {
-        console.log(guildQueue.volume)
+    if(command === 'getvolume') {
+        message.channel.send(guildQueue.volume)
     }
 
-    if(command === 'nowPlaying') {
+    if(command === 'nowplaying') {
         console.log(`Now playing: ${guildQueue.nowPlaying}`);
     }
 
     if(command === 'pause') {
         guildQueue.setPaused(true);
+        message.channel.send('Pausado')
     }
 
     if(command === 'resume' || command === 'r') {
         guildQueue.setPaused(false);
     }
 
-    if(command === 'leave' || command === 'l') {
-        message.channel.send('Que pasa larva, me queri echar')
-    //    client.player.lea
-    }
-
     if(command === 'remove') {
         guildQueue.remove(parseInt(args[0]));
     }
 
-    if(command === 'createProgressBar') {
+    if(command === 'createprogressbar') {
         const ProgressBar = guildQueue.createProgressBar();
         
         // [======>              ][00:35/2:20]
