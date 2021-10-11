@@ -86,6 +86,10 @@ client.on('messageCreate', async (message) => {
                 queue.stop();
         });
     }
+    
+    if(command === 'help' || command === 'h') {
+        message.channel.send('-play -playlist -skip -stop -loop -unloop -loopQueue -clear -shuffle -queue -pause -resume')
+    }
 
     // If the guildQueue does not exist, any of the other commands will fail
     if(!guildQueue) return
@@ -165,9 +169,5 @@ client.on('messageCreate', async (message) => {
         
         // [======>              ][00:35/2:20]
         console.log(ProgressBar.prettier);
-    }
-
-    if(command === 'help' || command === 'h') {
-        message.channel.send('-play -playlist -skip -stop -loop -unloop -loopQueue -clear -shuffle -queue -pause -resume')
     }
 })
