@@ -71,6 +71,11 @@ client.on('messageCreate', async (message) => {
     
     let guildQueue = client.player.getQueue(message.guild.id);
 
+    if(command === 'join' || command === 'j') {
+        let queue = client.player.createQueue(message.guild.id, { data: { message } });
+        await queue.join(message.member.voice.channel);
+    }
+
     if(command === 'play' || command === 'p') {
         let queue = client.player.createQueue(message.guild.id, { data: { message } });
         await queue.join(message.member.voice.channel);
@@ -142,7 +147,7 @@ client.on('messageCreate', async (message) => {
 
     if(command === 'queue' || command === 'q') {
         let queuePretty = guildQueue.songs.slice(0,9)
-        .map((song, index) => `${index+1}- ${song.name} || ${song.name}\n`).join('\n')
+        .map((song, index) => `${index+1}- ${song.name}\n`).join('\n')
         message.channel.send('\`\`\`' + queuePretty + '\`\`\`')
     }
 
