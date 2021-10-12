@@ -108,7 +108,12 @@ client.on('messageCreate', async (message) => {
         message.channel.send('Canción saltada')
     }
 
-    if(command === 'stop' || command === 'leave') {
+    if(command === 'stop') {
+        guildQueue.setPaused(true);
+        message.channel.send('¿Cual es la diferencia con pausado?')
+    }
+
+    if(command === 'leave' || command === 'l') {
         guildQueue.stop();
     }
 
