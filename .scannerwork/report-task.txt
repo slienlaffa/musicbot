@@ -1,0 +1,6 @@
+projectKey=music-bot
+serverUrl=http://localhost:9000
+serverVersion=9.1.0.47736
+dashboardUrl=http://localhost:9000/dashboard?id=music-bot
+ceTaskId=AXy-0s-7I1_qNQbXoXu4
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AXy-0s-7I1_qNQbXoXu4
