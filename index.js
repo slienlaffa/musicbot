@@ -1,4 +1,4 @@
-const { Client, Intents } = require('discord.js')
+const { Client, Intents, Collection } = require('discord.js')
 const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
@@ -7,6 +7,23 @@ const client = new Client({
         Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     ],
 })
+
+client.commands = new Collection()
+client.aliases = new Collection()
+
+const fs = require('fs')
+
+fs.readdir(`./commands/`, (err, files) => {
+    if (err) throw err
+    for (const file of files) {
+        const props = require(`./commands/${file}`)
+        client.commands.set(props.commandData.name, props)
+        for (const alias of props.commandData.aliases) {
+            client.aliases.set(alias, props.commandData.name)
+        }
+    }
+})
+
 const { token } = require('./config.json')
 const prefix = '-'
 
@@ -25,6 +42,8 @@ client.on('ready', () => {
 
 client.login(token)
 
+const { logError } = require('./util.js')
+
 client.on('error', (e) => console.error(e))
 client.on('warn', (e) => console.warn(e))
 
@@ -36,9 +55,6 @@ client.player
             `Everyone left the Voice Channel, queue ended.`
         )
     )
-    // Emitted when a song was added to the queue.
-    //   .on('songAdd',  (queue, song) =>
-    //       queue.data.message.channel.send(`Song ${song} was added to the queue.`))
     // Emitted when a playlist was added to the queue.
     .on('playlistAdd', (queue, playlist) =>
         queue.data.message.channel.send(
@@ -77,50 +93,18 @@ client.player
         logError(error, queue)
     })
 
-const { RepeatMode } = require('discord-music-player')
-
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return
     if (!message.content.startsWith(prefix)) return
     const args = message.content.slice(prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase()
 
-    if (command === 'help' || command === 'h') {
-        message.channel.send(
-            '-play -playlist -skip -stop -loop -unloop -loopQueue -clear -shuffle -queue -pause -resume -nowplaying -remove'
-        )
-    }
-
     if (!message.member.voice.channel) return
 
     let guildQueue = client.player.getQueue(message.guild.id)
 
-    if (command === 'join' || command === 'j') {
-        let queue = client.player.createQueue(message.guild.id, {
-            data: { message },
-        })
-        await queue.join(message.member.voice.channel)
-    }
-
-    if (command === 'play' || command === 'p') {
-        let queue = client.player.createQueue(message.guild.id, {
-            data: { message },
-        })
-        await queue.join(message.member.voice.channel)
-        let functionPlay =
-            /youtube.com\/.*list/.test(args[0]) ||
-            /spotify.com\/playlist/.test(args[0])
-                ? queue.playlist
-                : queue.play
-        await functionPlay.call(queue, args.join(' ')).catch((error) => {
-            logError(error, queue)
-            message.channel.send('No pregunti por qué, pero la wea no funciona')
-            if (!guildQueue) queue.stop()
-        })
-    }
-
-    // may delete, if play can identify playlist correctly
-    if (command === 'playlist' || command === 'pl') {
+    //
+    /*if (command === 'playlist' || command === 'pl') {
         let queue = client.player.createQueue(message.guild.id, {
             data: { message },
         })
@@ -130,107 +114,24 @@ client.on('messageCreate', async (message) => {
             message.channel.send('No pregunti por qué, pero la wea no funciona')
             if (!guildQueue) queue.stop()
         })
-    }
+    }*/
 
-    // If the guildQueue does not exist, any of the other commands will fail
-    if (!guildQueue) return
-
-    if (command === 'skip' || command === 's') {
-        if (guildQueue.songs.length == 0) return
-        guildQueue.skip()
-        message.react('⏩')
-    }
-
-    if (command === 'stop') {
-        guildQueue.setPaused(true)
-        message.react('⏹️')
-    }
-
-    if (command === 'leave' || command === 'l') {
-        guildQueue.stop()
-    }
-
-    if (command === 'unloop') {
-        guildQueue.setRepeatMode(RepeatMode.DISABLED) // or 0 instead of RepeatMode.DISABLED
-        message.react('➡️')
-    }
-
-    if (command === 'loop') {
-        guildQueue.setRepeatMode(RepeatMode.SONG) // or 1 instead of RepeatMode.SONG
-        message.react('🔁')
-    }
-
-    if (command === 'loopqueue') {
-        guildQueue.setRepeatMode(RepeatMode.QUEUE) // or 2 instead of RepeatMode.QUEUE
-        message.react('🔂')
-    }
-
-    if (command === 'setvolume') {
+    /*   if (command === 'setvolume') {
         guildQueue.setVolume(parseInt(args[0]))
     }
-
-    if (command === 'seek') {
-        guildQueue.seek(parseInt(args[0]) * 1000)
-    }
-
-    if (command === 'clear') {
-        guildQueue.clearQueue()
-        message.channel.send('Queue limpiada')
-    }
-
-    if (command === 'shuffle') {
-        guildQueue.shuffle()
-        message.react('🔀')
-    }
-
-    if (command === 'queue' || command === 'q') {
-        let queuePretty = guildQueue.songs
-            .slice(0, 9)
-            .map((song, index) => `${index + 1}- ${song.name}\n`)
-            .join('\n')
-        message.channel.send('```' + queuePretty + '```')
-    }
-
+    
     if (command === 'getvolume') {
         message.channel.send(guildQueue.volume)
-    }
+    }*/
 
-    if (command === 'nowplaying') {
-        const ProgressBar = guildQueue.createProgressBar()
-        message.channel.send(
-            `Now playing: ${guildQueue.nowPlaying}\n${ProgressBar.prettier}`
-        )
-    }
+    const dynamicCommand =
+        client.commands.get(command) ||
+        client.commands.get(client.aliases.get(command)) // get the command using an alias
 
-    if (command === 'pause') {
-        guildQueue.setPaused(true)
-        message.react('⏸️')
-    }
+    if (!dynamicCommand) return
 
-    if (command === 'resume' || command === 'r') {
-        guildQueue.setPaused(false)
-        message.react('▶️')
-    }
+    // when the is no guildQueue and the command need guildqueue, cant execute the command
+    if (!guildQueue && dynamicCommand.commandData.needQueue) return
 
-    if (command === 'remove') {
-        guildQueue.remove(parseInt(args[0]))
-        message.react('513547150697955338')
-    }
-
-    if (command === 'createprogressbar') {
-        const ProgressBar = guildQueue.createProgressBar()
-
-        // [======>              ][00:35/2:20]
-        console.log(ProgressBar.prettier)
-    }
+    await dynamicCommand.run(guildQueue, message, client, args)
 })
-
-function logError(error, queue) {
-    console.log(timeNow() + 'En: ' + queue.guild.name + ' Error: ' + error)
-}
-
-function timeNow() {
-    return new Date(Date.now()).toLocaleTimeString('en-GB', {
-        timezone: 'America/Santiago',
-    })
-}
