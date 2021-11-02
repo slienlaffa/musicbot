@@ -29,7 +29,7 @@ const prefix = '-'
 
 const { Player } = require('discord-music-player')
 const player = new Player(client, {
-    leaveOnEnd: false, // This options are optional.
+    leaveOnEnd: false,
     volume: 50,
     quality: 'low',
 })
@@ -91,6 +91,9 @@ client.player
     // Emitted when there was an error in runtime
     .on('error', (error, queue) => {
         logError(error, queue)
+        queue.data.message.channel.send(
+            `There was an error playing this song. ${queue.songs[0]?.name}`
+        )
     })
 
 client.on('messageCreate', async (message) => {
