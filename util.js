@@ -6,7 +6,7 @@ exports.logError = (error, queue) => {
 }
 
 function timeNow() {
-    return new Date(Date.now()).toLocaleTimeString('en-GB', {
+    return new Date().toLocaleString('es-CL', {
         timezone: 'America/Santiago',
     })
 }

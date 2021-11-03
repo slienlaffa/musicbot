@@ -47,30 +47,30 @@ const { logError } = require('./util.js')
 client.on('error', (e) => console.error(e))
 client.on('warn', (e) => console.warn(e))
 
-// Init the event listener only once (at the top of your code).
 client.player
-    // Emitted when channel was empty.
     .on('channelEmpty', (queue) =>
         queue.data.message.channel.send(
             `Everyone left the Voice Channel, queue ended.`
         )
     )
-    // Emitted when a playlist was added to the queue.
     .on('playlistAdd', (queue, playlist) =>
         queue.data.message.channel.send(
             `Playlist ${playlist} with ${playlist.songs.length} was added to the queue.`
         )
     )
-    // Emitted when there was no more music to play.
     .on('queueEnd', (queue) =>
         queue.data.message.channel.send(`The queue has ended.`)
     )
-    // Emitted when a song changed.
-    /*   .on('songChanged', (queue, newSong, oldSong) =>
-        queue.data.message.channel.send(`${newSong} is now playing.`)
-        // when 403 error, there is no song to get name
-    )*/
-    // Emitted when a first song in the queue started playing.
+    /* .on('songChanged', (queue, newSong, oldSong) => {
+        console.log(queue.data.message.channel.members.size)
+        // todo: it show the members when the message was send
+        // if no one else is in the voice channel, leave the channel
+        if (queue.data.message.channel.members.size === 1) {
+            console.log(queue.data.message.channel.members.size)
+            console.log('No one is in the voice channel, leaving...')
+            queue.destroy()
+        }
+    })*/
     .on('songFirst', (queue, song) =>
         queue.data.message.channel.send(
             `Started playing ${song}. ${client.emojis.cache.get(
@@ -78,17 +78,14 @@ client.player
             )}`
         )
     )
-    // Emitted when someone disconnected the bot from the channel.
     .on('clientDisconnect', (queue) =>
         queue.data.message.channel.send(
             `I was kicked from the Voice Channel, queue ended.`
         )
     )
-    // Emitted when deafenOnJoin is true and the bot was undeafened
     .on('clientUndeafen', (queue) =>
         queue.data.message.channel.send(`I got undefeanded.`)
     )
-    // Emitted when there was an error in runtime
     .on('error', (error, queue) => {
         logError(error, queue)
         queue.data.message.channel.send(
@@ -105,27 +102,6 @@ client.on('messageCreate', async (message) => {
     if (!message.member.voice.channel) return
 
     let guildQueue = client.player.getQueue(message.guild.id)
-
-    //
-    /*if (command === 'playlist' || command === 'pl') {
-        let queue = client.player.createQueue(message.guild.id, {
-            data: { message },
-        })
-        await queue.join(message.member.voice.channel)
-        await queue.playlist(args.join(' ')).catch((error) => {
-            logError(error, queue)
-            message.channel.send('No pregunti por qué, pero la wea no funciona')
-            if (!guildQueue) queue.stop()
-        })
-    }*/
-
-    /*   if (command === 'setvolume') {
-        guildQueue.setVolume(parseInt(args[0]))
-    }
-    
-    if (command === 'getvolume') {
-        message.channel.send(guildQueue.volume)
-    }*/
 
     const dynamicCommand =
         client.commands.get(command) ||
