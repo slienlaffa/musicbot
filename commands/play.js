@@ -20,7 +20,7 @@ exports.run = async (guildQueue, message, client, args) => {
             : queue.play
     await functionPlay.call(queue, args.join(' ')).catch((error) => {
         logError(error, queue)
-        message.channel.send(error)
+        message.channel.send('There was an error playing this.')
         if (!guildQueue) queue.stop()
     })
 }

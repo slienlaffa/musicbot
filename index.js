@@ -61,12 +61,9 @@ client.player
     .on('queueEnd', (queue) =>
         queue.data.message.channel.send(`The queue has ended.`)
     )
-    /* .on('songChanged', (queue, newSong, oldSong) => {
-        console.log(queue.data.message.channel.members.size)
-        // todo: it show the members when the message was send
+    /*  .on('songChanged', (queue, newSong, oldSong) => {
         // if no one else is in the voice channel, leave the channel
-        if (queue.data.message.channel.members.size === 1) {
-            console.log(queue.data.message.channel.members.size)
+        if (queue.connection.channel.members.size === 1) {
             console.log('No one is in the voice channel, leaving...')
             queue.destroy()
         }
