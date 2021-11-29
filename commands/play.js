@@ -14,8 +14,8 @@ exports.run = async (guildQueue, message, client, args) => {
     })
     await queue.join(message.member.voice.channel)
     let functionPlay =
-        /youtube.com\/.*list/.test(args[0]) ||
-        /spotify.com\/playlist/.test(args[0])
+        /youtube\.com\/.*list/.test(args[0]) ||
+        /spotify\.com\/(?:playlist|album)/.test(args[0])
             ? queue.playlist
             : queue.play
     await functionPlay.call(queue, args.join(' ')).catch((error) => {
